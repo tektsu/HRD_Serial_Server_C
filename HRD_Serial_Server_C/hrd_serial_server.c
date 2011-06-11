@@ -16,7 +16,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
-
 #include <errno.h>
 #include <time.h>
 #include <termios.h>
@@ -24,11 +23,8 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-
-
 #include <assert.h>
-
-#include "endian.c"
+#include "endian.h"
 
 /********************************************************/
 /* time limited I/O                                     */
