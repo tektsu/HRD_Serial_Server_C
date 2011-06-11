@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AA74518213A2F59B004BCA0E /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = AA74518113A2F59B004BCA0E /* main.c */; };
+		AA74518D13A2F606004BCA0E /* config.c in Sources */ = {isa = PBXBuildFile; fileRef = AA74518913A2F606004BCA0E /* config.c */; };
+		AA74518E13A2F606004BCA0E /* endian.c in Sources */ = {isa = PBXBuildFile; fileRef = AA74518B13A2F606004BCA0E /* endian.c */; };
+		AA74518F13A2F606004BCA0E /* hrd_serial_server.c in Sources */ = {isa = PBXBuildFile; fileRef = AA74518C13A2F606004BCA0E /* hrd_serial_server.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,8 +26,11 @@
 
 /* Begin PBXFileReference section */
 		AA74517D13A2F59B004BCA0E /* HRD_Serial_Server_C */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = HRD_Serial_Server_C; sourceTree = BUILT_PRODUCTS_DIR; };
-		AA74518113A2F59B004BCA0E /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		AA74518313A2F59B004BCA0E /* HRD_Serial_Server_C.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = HRD_Serial_Server_C.1; sourceTree = "<group>"; };
+		AA74518913A2F606004BCA0E /* config.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = config.c; sourceTree = "<group>"; };
+		AA74518A13A2F606004BCA0E /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		AA74518B13A2F606004BCA0E /* endian.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = endian.c; sourceTree = "<group>"; };
+		AA74518C13A2F606004BCA0E /* hrd_serial_server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hrd_serial_server.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,7 +63,10 @@
 		AA74518013A2F59B004BCA0E /* HRD_Serial_Server_C */ = {
 			isa = PBXGroup;
 			children = (
-				AA74518113A2F59B004BCA0E /* main.c */,
+				AA74518913A2F606004BCA0E /* config.c */,
+				AA74518A13A2F606004BCA0E /* config.h */,
+				AA74518B13A2F606004BCA0E /* endian.c */,
+				AA74518C13A2F606004BCA0E /* hrd_serial_server.c */,
 				AA74518313A2F59B004BCA0E /* HRD_Serial_Server_C.1 */,
 			);
 			path = HRD_Serial_Server_C;
@@ -111,7 +119,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA74518213A2F59B004BCA0E /* main.c in Sources */,
+				AA74518D13A2F606004BCA0E /* config.c in Sources */,
+				AA74518E13A2F606004BCA0E /* endian.c in Sources */,
+				AA74518F13A2F606004BCA0E /* hrd_serial_server.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
