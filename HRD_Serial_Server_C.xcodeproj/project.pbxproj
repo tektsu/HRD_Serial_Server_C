@@ -1,0 +1,198 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA74518213A2F59B004BCA0E /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = AA74518113A2F59B004BCA0E /* main.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AA74517B13A2F59B004BCA0E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		AA74517D13A2F59B004BCA0E /* HRD_Serial_Server_C */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = HRD_Serial_Server_C; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA74518113A2F59B004BCA0E /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		AA74518313A2F59B004BCA0E /* HRD_Serial_Server_C.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = HRD_Serial_Server_C.1; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA74517A13A2F59B004BCA0E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AA74517213A2F59B004BCA0E = {
+			isa = PBXGroup;
+			children = (
+				AA74518013A2F59B004BCA0E /* HRD_Serial_Server_C */,
+				AA74517E13A2F59B004BCA0E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AA74517E13A2F59B004BCA0E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA74517D13A2F59B004BCA0E /* HRD_Serial_Server_C */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AA74518013A2F59B004BCA0E /* HRD_Serial_Server_C */ = {
+			isa = PBXGroup;
+			children = (
+				AA74518113A2F59B004BCA0E /* main.c */,
+				AA74518313A2F59B004BCA0E /* HRD_Serial_Server_C.1 */,
+			);
+			path = HRD_Serial_Server_C;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AA74517C13A2F59B004BCA0E /* HRD_Serial_Server_C */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA74518613A2F59B004BCA0E /* Build configuration list for PBXNativeTarget "HRD_Serial_Server_C" */;
+			buildPhases = (
+				AA74517913A2F59B004BCA0E /* Sources */,
+				AA74517A13A2F59B004BCA0E /* Frameworks */,
+				AA74517B13A2F59B004BCA0E /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HRD_Serial_Server_C;
+			productName = HRD_Serial_Server_C;
+			productReference = AA74517D13A2F59B004BCA0E /* HRD_Serial_Server_C */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA74517413A2F59B004BCA0E /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = AA74517713A2F59B004BCA0E /* Build configuration list for PBXProject "HRD_Serial_Server_C" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = AA74517213A2F59B004BCA0E;
+			productRefGroup = AA74517E13A2F59B004BCA0E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AA74517C13A2F59B004BCA0E /* HRD_Serial_Server_C */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA74517913A2F59B004BCA0E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA74518213A2F59B004BCA0E /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AA74518413A2F59B004BCA0E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		AA74518513A2F59B004BCA0E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		AA74518713A2F59B004BCA0E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		AA74518813A2F59B004BCA0E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA74517713A2F59B004BCA0E /* Build configuration list for PBXProject "HRD_Serial_Server_C" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA74518413A2F59B004BCA0E /* Debug */,
+				AA74518513A2F59B004BCA0E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA74518613A2F59B004BCA0E /* Build configuration list for PBXNativeTarget "HRD_Serial_Server_C" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA74518713A2F59B004BCA0E /* Debug */,
+				AA74518813A2F59B004BCA0E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AA74517413A2F59B004BCA0E /* Project object */;
+}
