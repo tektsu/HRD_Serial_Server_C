@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA660E6C13A5610E00D49465 /* endian.c in Sources */ = {isa = PBXBuildFile; fileRef = AA660E6B13A5610E00D49465 /* endian.c */; };
 		AA74518D13A2F606004BCA0E /* config.c in Sources */ = {isa = PBXBuildFile; fileRef = AA74518913A2F606004BCA0E /* config.c */; };
 		AA74518F13A2F606004BCA0E /* hrd_serial_server.c in Sources */ = {isa = PBXBuildFile; fileRef = AA74518C13A2F606004BCA0E /* hrd_serial_server.c */; };
 /* End PBXBuildFile section */
@@ -24,12 +25,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AA660E6B13A5610E00D49465 /* endian.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = endian.c; sourceTree = "<group>"; };
+		AA660E6E13A5618200D49465 /* endian.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = endian.h; sourceTree = "<group>"; };
+		AA660E7013A565B400D49465 /* hrd_serial_server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hrd_serial_server.h; sourceTree = "<group>"; };
 		AA74517D13A2F59B004BCA0E /* HRD_Serial_Server_C */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = HRD_Serial_Server_C; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA74518313A2F59B004BCA0E /* HRD_Serial_Server_C.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = HRD_Serial_Server_C.1; sourceTree = "<group>"; };
 		AA74518913A2F606004BCA0E /* config.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = config.c; sourceTree = "<group>"; };
 		AA74518A13A2F606004BCA0E /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		AA74518C13A2F606004BCA0E /* hrd_serial_server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hrd_serial_server.c; sourceTree = "<group>"; };
-		AA74519013A2F6B2004BCA0E /* endian.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = endian.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,9 +65,11 @@
 		AA74518013A2F59B004BCA0E /* HRD_Serial_Server_C */ = {
 			isa = PBXGroup;
 			children = (
-				AA74519013A2F6B2004BCA0E /* endian.h */,
-				AA74518913A2F606004BCA0E /* config.c */,
+				AA660E6E13A5618200D49465 /* endian.h */,
+				AA660E6B13A5610E00D49465 /* endian.c */,
 				AA74518A13A2F606004BCA0E /* config.h */,
+				AA74518913A2F606004BCA0E /* config.c */,
+				AA660E7013A565B400D49465 /* hrd_serial_server.h */,
 				AA74518C13A2F606004BCA0E /* hrd_serial_server.c */,
 				AA74518313A2F59B004BCA0E /* HRD_Serial_Server_C.1 */,
 			);
@@ -120,6 +125,7 @@
 			files = (
 				AA74518D13A2F606004BCA0E /* config.c in Sources */,
 				AA74518F13A2F606004BCA0E /* hrd_serial_server.c in Sources */,
+				AA660E6C13A5610E00D49465 /* endian.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

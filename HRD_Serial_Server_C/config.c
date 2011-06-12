@@ -1,3 +1,10 @@
+//
+//  config.c
+//  hrd_serial_server
+//
+//  Created by Sivon Toledo.
+//  Modified by Steve Baker.
+//
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,21 +18,9 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <assert.h>
-
 #include "config.h"
 
 /*** dictionary management ***/
-
-struct dictionary_item_st {
-  char* identifier;
-  char* value;
-  struct dictionary_item_st* next;
-  char  short_id;
-};
-
-struct dictionary_st {
-  struct dictionary_item_st* items;
-};
 
 static void update_item(dictionary_t dict, char* id, char* v)
 {
@@ -448,14 +443,12 @@ nextline:
 
 /*** processing argc, argv ***/
 
-static void process_args(dictionary_t dict,
-                         int argc,
-                         char* argv[])
+static void process_args(dictionary_t dict, int argc, char *argv[])
 {
   int i;
   int argtype[argc];
-  char* id;
-  char* v;
+  char *id;
+  char *v;
   char  buf[256];
 
   argtype[0] = -1; /* argument 0 is the name of the program */
@@ -559,7 +552,7 @@ dictionary_t configInit(char* fname,
   }
 
   process_args(dict, argc, argv);
-
+  dump(dict);
   return dict;
 }
 

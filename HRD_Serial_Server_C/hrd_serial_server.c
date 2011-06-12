@@ -1,67 +1,47 @@
-/*
- * old
- */
+//
+//  hrd_serial_server.c
+//  hrd_serial_server
+//
+//  Created by Sivon Toledo.
+//  Modified by Steve Baker.
+//
 
+#include <arpa/inet.h>
+#include <assert.h>
+#include <dirent.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <string.h>
-#include <sys/utsname.h>
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <errno.h>
-#include <time.h>
-#include <termios.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <assert.h>
-#include <dirent.h>
-#include <pthread.h>
+#include <sys/types.h>
+#include <sys/utsname.h>
+#include <termios.h>
+#include <time.h>
+#include <unistd.h>
 
-#include "endian.c"
 #include "config.h"
+#include "endian.h"
+#include "hrd_serial_server.h"
 
 dictionary_t config;
 char* config_locations[] = {
   "/etc",
   "./",
-  0
+  NULL
 };
-
-/*****************************************************/
-/* HRD connections                                   */
-/*****************************************************/
-
-typedef struct {
-  //char* user = null;
-  //public String pass = null;
-  //public String port = null;
-  int length, command;
-  char *buffer;
-  int s;
-
-  int handle;
-
-  int read_interval, read_constant, read_multiplier, write_constant, write_multiplier;
-
-  int done; // are we done with this connection?
-
-  pthread_t thread;
-} connection_t;
-
-void *connection_thread(void *conn_v);
 
 /********************************************************/
 /* time limited I/O                                     */
 /********************************************************/
 
-static int serialReceiveByteTimelimited(int fd, int msecs)
+int serialReceiveByteTimelimited(int fd, int msecs)
 {
   uint8_t b;
 
@@ -264,11 +244,11 @@ void connection_authenticate(connection_t* conn)
   char password[64];
   char release[64];
   strncpy(user,(conn->buffer)+16   ,63);
-  user[63]    =0;
+  user[63]     = 0;
   strncpy(password,(conn->buffer)+16+64,63);
-  password[63]=0;
+  password[63] = 0;
   strncpy(release,(conn->buffer)+16+2*64,63);
-  release[63] =0;
+  release[63]  = 0;
 
   printf("Authenticate command user=%s password=%s release=%s\n",user,password,release);
 
@@ -737,9 +717,9 @@ void connection_receive(connection_t *conn)
 
 void connection_logging(connection_t *conn)
 {
-  uint32FromLittleEndian((uint8_t *)(conn->buffer)+12);
-  uint32FromLittleEndian((uint8_t *)(conn->buffer)+16);
-  /*
+  int n1 = uint32FromLittleEndian((uint8_t *)(conn->buffer)+12);
+  int n2 = uint32FromLittleEndian((uint8_t *)(conn->buffer)+16);
+  
   char port[32];
   strncpy(port,(conn->buffer)+20,31); port[32] = 0;
   char msg[64];
@@ -747,7 +727,7 @@ void connection_logging(connection_t *conn)
 
   printf("Logging command (%d,%d,%s)\n",n1,n2,port);
   printf("  <%s>\n",msg);
-  */
+  
   conn->length = 0; // don't send a response
 }
 
@@ -886,19 +866,17 @@ void *connection_thread(void* conn_v)
 
 int main(int argc, char** argv)
 {
-
-  printf("1\n");
-
   config =
     configInit("hrd_serial_server.conf",
                config_locations,
                argc,
                argv);
-  //dump(config);
 
   int port = configGetInt(config, "port", 0, 7805);
   //printf(">>> %s\n",configGetString(config, "port", 0, "7805"));
   printf("port %d\n",port);
+
+  return 0;
 
   int ss = server_socket_create(port);
   while (1) {

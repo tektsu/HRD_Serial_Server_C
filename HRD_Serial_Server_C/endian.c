@@ -1,4 +1,13 @@
-static uint32_t uint32FromLittleEndian(uint8_t *buffer)
+//
+//  endian.c
+//  hrd_serial_server
+//
+//  Created by Sivon Toledo.
+//  Modified by Steve Baker.
+//
+#include "endian.h"
+
+uint32_t uint32FromLittleEndian(uint8_t *buffer)
 {
   uint32_t tmp;
   uint32_t result;
@@ -21,7 +30,7 @@ static uint32_t uint32FromLittleEndian(uint8_t *buffer)
   return result;
 }
 
-static void uint32ToLittleEndian(uint32_t x, uint8_t *buffer)
+void uint32ToLittleEndian(uint32_t x, uint8_t *buffer)
 {
   buffer[0] = ( x        & 0xFF);
   buffer[1] = ((x >>  8) & 0xFF);
@@ -29,7 +38,7 @@ static void uint32ToLittleEndian(uint32_t x, uint8_t *buffer)
   buffer[3] = ((x >> 24) & 0xFF);
 }
 
-static uint16_t uint16FromLittleEndian(uint8_t *buffer)
+uint16_t uint16FromLittleEndian(uint8_t *buffer)
 {
   uint16_t tmp;
   uint16_t result;
@@ -44,7 +53,7 @@ static uint16_t uint16FromLittleEndian(uint8_t *buffer)
   return result;
 }
 
-static void uint16ToLittleEndian(uint16_t x, uint8_t *buffer)
+void uint16ToLittleEndian(uint16_t x, uint8_t *buffer)
 {
   buffer[0] = ( x        & 0xFF);
   buffer[1] = ((x >>  8) & 0xFF);
