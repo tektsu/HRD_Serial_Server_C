@@ -1,9 +1,3 @@
-/*
- * Copyright Sivan Toledo, 2009
- *
- * This code is licenced under the GNU General Public License.
- * See http://www.gnu.org/licenses/gpl.html.
- */
 
 #ifndef CONFIG_H
 #define CONFIG_H

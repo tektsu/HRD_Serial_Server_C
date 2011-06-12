@@ -1,8 +1,5 @@
 /*
- * Copyright Sivan Toledo, 2011
- *
- * This code is licenced under the GNU General Public License.
- * See http://www.gnu.org/licenses/gpl.html.
+ * old
  */
 
 #include <stdio.h>
@@ -16,6 +13,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
+
 #include <errno.h>
 #include <time.h>
 #include <termios.h>
@@ -23,8 +21,11 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+
+
 #include <assert.h>
-#include "endian.h"
+
+#include "endian.c"
 
 /********************************************************/
 /* time limited I/O                                     */
@@ -215,7 +216,11 @@ typedef struct {
   int read_interval, read_constant, read_multiplier, write_constant, write_multiplier;
 
   int done; // are we done wiht this connection?
+
+  pthread_t thread;
 } connection_t;
+
+void* connection_thread(void* conn_v);
 
 connection_t* connection_create(int socket) {
   connection_t* conn = (connection_t*) malloc(sizeof(connection_t));
@@ -231,6 +236,8 @@ connection_t* connection_create(int socket) {
   conn->write_multiplier = 20;
 
   conn->done = 0;
+
+  pthread_create(&(conn->thread),NULL,connection_thread,conn);
 
   return conn;
 }
@@ -254,6 +261,7 @@ int connection_authenticate(connection_t* conn) {
 int connection_enumerate(connection_t* conn) {
   //char* ports = "COM1,COM21,ttyUSB0,ttyUSB1";
   char ports[256];
+  ports[0] = 0; // initialize to empty string
   char port[256];
   printf("Enumerate command ports=%s\n",ports);
 
@@ -383,6 +391,35 @@ int connection_parameters(connection_t* conn) {
   printf("  speed=%d nbits=%d parity=%d stop=%d\n",speed,nbits,parity,stop);
   printf("  xonch=%02x xoffch=%02x err=%02x eof=%02x evt=%02x\n",xonchar,xoffchar,errchar,eofchar,evtchar);
   printf("  bitfields=%08x \n",bitfields);
+
+  int fBinary           = (bitfields & 0x00000001);
+  int fParity           = (bitfields & 0x00000002) >> 1;
+  int fOutxCtsFlow      = (bitfields & 0x00000004) >> 2;
+  int fOutxDsrFlow      = (bitfields & 0x00000008) >> 3;
+  int fDtrControl       = (bitfields & 0x00000030) >> 4;
+  int fDtrSensitivity   = (bitfields & 0x00000040) >> 6;
+  int fTXContinueOnXoff = (bitfields & 0x00000080) >> 7;
+  int fOutX             = (bitfields & 0x00000100) >> 8;
+  int fInX              = (bitfields & 0x00000200) >> 9;
+  int fErrorChar        = (bitfields & 0x00000400) >> 10;
+  int fNull             = (bitfields & 0x00000800) >> 11;
+  int fRtsControl       = (bitfields & 0x00003000) >> 12;
+  int fAbortOnError     = (bitfields & 0x00004000) >> 14;
+  printf("  bitfields=%08x \n",bitfields);
+  // printed but not implemented yet...
+  switch (fDtrControl) {
+  case 0:  printf("    DTR=disabled (off)\n"); break;
+  case 1:  printf("    DTR=enabled (on)\n"); break;
+  case 2:  printf("    DTR=handshake\n"); break;
+  default: printf("    DTR=error!?!\n"); break;
+  }
+  switch (fRtsControl) {
+  case 0:  printf("    RTS=disabled (off)\n"); break;
+  case 1:  printf("    RTS=enabled (on)\n"); break;
+  case 2:  printf("    RTS=handshake\n"); break;
+  default: printf("    RTS=error!?!\n"); break;
+  }
+
 
   struct termios tty;
   //bzero(&tty, sizeof(tty));
@@ -705,8 +742,10 @@ int connection_read(connection_t* conn) {
   printf("Command %d length %d\n", conn->command, conn->length);
 }
 
-void connection_thread(int socket) {
-  connection_t* conn = connection_create(socket);
+//void connection_thread(int socket) {
+void* connection_thread(void* conn_v) {
+  connection_t* conn = (connection_t*) conn_v;
+    //connection_t* conn = connection_create(socket);
 
   while (1) {
     printf("reading command...");
@@ -764,8 +803,10 @@ int main(int argc, char** argv) {
   printf("port %d\n",port);
 
   int ss = server_socket_create(port);
-  int c  = connection_socket_create(ss);
-  connection_thread(c);
+  while (1) {
+    int c  = connection_socket_create(ss);
+    connection_create(c);
+  }
 }
 
 
