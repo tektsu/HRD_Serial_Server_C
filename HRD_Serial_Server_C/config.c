@@ -27,20 +27,24 @@ struct dictionary_st {
   struct dictionary_item_st* items;
 };
 
-static void update_item(dictionary_t dict, char* id, char* v) {
+static void update_item(dictionary_t dict, char* id, char* v)
+{
   struct dictionary_item_st* item = dict->items;
 
   while (item) {
     if (item->identifier && strcmp(item->identifier,id)==0) {
-      if (item->value) free(item->value);
+      if (item->value) {
+        free(item->value);
+      }
       if (v) {
         //printf("replacing <%s> with value <%s>\n",item->identifier,v);
         item->value = malloc(strlen(v)+1);
         assert(item->value);
         strcpy(item->value,v);
         return;
-      } else
+      } else {
         item->value = 0;
+      }
     }
     item = item->next;
   }
@@ -60,25 +64,30 @@ static void update_item(dictionary_t dict, char* id, char* v) {
     strcpy(item->identifier,id);
     item->next = dict->items;
     dict->items = item;
-  } else
+  } else {
     assert(0);
+  }
 }
 
-static void update_item_short(dictionary_t dict, char short_id, char* v) {
+static void update_item_short(dictionary_t dict, char short_id, char* v)
+{
   struct dictionary_item_st* item = dict->items;
 
   //printf("update short %c\n",short_id);
   while (item) {
     if (item->short_id==short_id) {
-      if (item->value) free(item->value);
+      if (item->value) {
+        free(item->value);
+      }
       if (v) {
         //printf("replacing <-%c> with value <%s>\n",short_id,v);
         item->value = malloc(strlen(v)+1);
         assert(item->value);
         strcpy(item->value,v);
         return;
-      } else
+      } else {
         item->value = 0;
+      }
     }
     item = item->next;
   }
@@ -96,11 +105,13 @@ static void update_item_short(dictionary_t dict, char short_id, char* v) {
     item->identifier = 0;
     item->next = dict->items;
     dict->items = item;
-  } else
+  } else {
     assert(0);
+  }
 }
 
-static void dump(dictionary_t dict) {
+static void dump(dictionary_t dict)
+{
   struct dictionary_item_st* item = dict->items;
 
   while (item) {
@@ -109,7 +120,7 @@ static void dump(dictionary_t dict) {
   }
 }
 
-  ///* process a client request to get an item, associating the long and short ids */
+///* process a client request to get an item, associating the long and short ids */
 
 static struct dictionary_item_st* get_helper(dictionary_t dict, char* id, char short_id) {
   struct dictionary_item_st* item = dict->items;
@@ -118,8 +129,9 @@ static struct dictionary_item_st* get_helper(dictionary_t dict, char* id, char s
 
   while (item) {
     /* if we have already associated this short id with an id, return the item */
-    if (item->identifier && strcmp(id,item->identifier)==0 && item->short_id==short_id)
+    if (item->identifier && strcmp(id,item->identifier)==0 && item->short_id==short_id) {
       return item;
+    }
     /* but if we associated it with another id, there's a bug in the client code that queries the dict */
     if (item->identifier && strcmp(id,item->identifier)!=0 && short_id!=0 && item->short_id==short_id) {
       printf("an attempt to associate flag -%c with both --%s and --%s\n",short_id,item->identifier,id);
@@ -161,7 +173,8 @@ static struct dictionary_item_st* get_helper(dictionary_t dict, char* id, char s
   return NULL;
 }
 
-char* configGetString(dictionary_t dict, char* id, char short_id, char* dflt) {
+char* configGetString(dictionary_t dict, char* id, char short_id, char* dflt)
+{
   //struct dictionary_item_st* item = dict->items;
 
   //while (item) {
@@ -170,12 +183,15 @@ char* configGetString(dictionary_t dict, char* id, char short_id, char* dflt) {
   //}
 
   struct dictionary_item_st* item = get_helper(dict, id, short_id);
-  if (item) return item->value;
+  if (item) {
+    return item->value;
+  }
 
   return dflt;
 }
 
-int configGetInt(dictionary_t dict, char* id, char short_id, int dflt) {
+int configGetInt(dictionary_t dict, char* id, char short_id, int dflt)
+{
   //struct dictionary_item_st* item = dict->items;
   int v;
 
@@ -183,18 +199,19 @@ int configGetInt(dictionary_t dict, char* id, char short_id, int dflt) {
   //  if (item->identifier && strcmp(id,item->identifier)==0) {
   //    if (sscanf(item->value,"%d",&v)==1) return v;
   //    else {
-	//printf("config warning: value of %s should be an integer (not %s)\n",
-	//       id,item->value);
+  //printf("config warning: value of %s should be an integer (not %s)\n",
+  //       id,item->value);
 //	return dflt;
- //     }
+//     }
   //  }
-   // item = item->next;
- // }
+  // item = item->next;
+// }
 
   struct dictionary_item_st* item = get_helper(dict, id, short_id);
   if (item) {
-    if (sscanf(item->value,"%d",&v)==1) return v;
-    else {
+    if (sscanf(item->value,"%d",&v)==1) {
+      return v;
+    } else {
       printf("config warning: value of %s should be an integer (not %s)\n",
              id,item->value);
       return dflt;
@@ -204,7 +221,8 @@ int configGetInt(dictionary_t dict, char* id, char short_id, int dflt) {
   return dflt;
 }
 
-uint32_t configGetUInt32Hex(dictionary_t dict, char* id, char short_id, uint32_t dflt) {
+uint32_t configGetUInt32Hex(dictionary_t dict, char* id, char short_id, uint32_t dflt)
+{
   //struct dictionary_item_st* item = dict->items;
   uint32_t v;
 
@@ -212,18 +230,19 @@ uint32_t configGetUInt32Hex(dictionary_t dict, char* id, char short_id, uint32_t
   //  if (item->identifier && strcmp(id,item->identifier)==0) {
   //    if (sscanf(item->value,"%d",&v)==1) return v;
   //    else {
-    //printf("config warning: value of %s should be an integer (not %s)\n",
-    //       id,item->value);
+  //printf("config warning: value of %s should be an integer (not %s)\n",
+  //       id,item->value);
 //  return dflt;
- //     }
+//     }
   //  }
-   // item = item->next;
- // }
+  // item = item->next;
+// }
 
   struct dictionary_item_st* item = get_helper(dict, id, short_id);
   if (item) {
-    if (sscanf(item->value,"0x%x",&v)==1) return v;
-    else {
+    if (sscanf(item->value,"0x%x",&v)==1) {
+      return v;
+    } else {
       printf("config warning: value of %s should be a hexadecimal value (not %s)\n",
              id,item->value);
       return dflt;
@@ -234,18 +253,32 @@ uint32_t configGetUInt32Hex(dictionary_t dict, char* id, char short_id, uint32_t
 }
 
 
-int configGetBoolean(dictionary_t dict, char* id, char short_id, int dflt) {
-  int v;
+int configGetBoolean(dictionary_t dict, char* id, char short_id, int dflt)
+{
 
   struct dictionary_item_st* item = get_helper(dict, id, short_id);
   if (item) {
-    if (!item->value) return 1; /* exists, although no value */
-    if (!strcmp(item->value,"1")) return 1;
-    if (!strcmp(item->value,"0")) return 0;
-    if (!strcasecmp(item->value,"true"))  return 1;
-    if (!strcasecmp(item->value,"false")) return 0;
-    if (!strcasecmp(item->value,"yes"))   return 1;
-    if (!strcasecmp(item->value,"no"))    return 0;
+    if (!item->value) {
+      return 1;  /* exists, although no value */
+    }
+    if (!strcmp(item->value,"1")) {
+      return 1;
+    }
+    if (!strcmp(item->value,"0")) {
+      return 0;
+    }
+    if (!strcasecmp(item->value,"true")) {
+      return 1;
+    }
+    if (!strcasecmp(item->value,"false")) {
+      return 0;
+    }
+    if (!strcasecmp(item->value,"yes")) {
+      return 1;
+    }
+    if (!strcasecmp(item->value,"no")) {
+      return 0;
+    }
     printf("config warning: value of %s should be a boolean (not %s)\n",
            id,item->value);
   }
@@ -255,12 +288,13 @@ int configGetBoolean(dictionary_t dict, char* id, char short_id, int dflt) {
 
 /*** substituting environment variables (like $HOME) in paths ***/
 
-static void env_substitute(char** env_variable, char** replacement) {
+static void env_substitute(char** env_variable, char** replacement)
+{
   char  varname[256];
   char* p = varname;
   while (isalpha(**env_variable)
-	 || isdigit(**env_variable)
-	 || **env_variable == '_') {
+         || isdigit(**env_variable)
+         || **env_variable == '_') {
     *p = **env_variable;
     p++;
     (*env_variable)++;
@@ -278,28 +312,31 @@ static void env_substitute(char** env_variable, char** replacement) {
 
 /*** configuration file parsing ***/
 
-static void skip_whitespace(char** p, size_t* n) {
+static void skip_whitespace(char** p, size_t* n)
+{
   while (*n > 0
-	 &&
-	 (**p == ' ' || **p == '\t' || **p == '\r' || **p == '\f' || **p == '\v')) {
+         &&
+         (**p == ' ' || **p == '\t' || **p == '\r' || **p == '\f' || **p == '\v')) {
     (*p) ++;
     (*n) --;
   }
 }
 
-static void skip_equals_sign(char** p, size_t* n) {
+static void skip_equals_sign(char** p, size_t* n)
+{
   while (*n > 0
-     &&
-     **p == '=') {
+         &&
+         **p == '=') {
     (*p) ++;
     (*n) --;
   }
 }
 
-static void skip_to_eol(char** p, size_t* n) {
+static void skip_to_eol(char** p, size_t* n)
+{
   while (*n > 0
-	 &&
-	 (**p != '\n')) {
+         &&
+         (**p != '\n')) {
     (*p) ++;
     (*n) --;
   }
@@ -310,10 +347,11 @@ static void skip_to_eol(char** p, size_t* n) {
   }
 }
 
-static void get_identifier(char** p, size_t* n, char* id) {
+static void get_identifier(char** p, size_t* n, char* id)
+{
   while (*n > 0
-     &&
-     **p != '=' &&**p != ' ' && **p != '\t' && **p != '\r' && **p != '\f' && **p != '\v' && **p != '\n') {
+         &&
+         **p != '=' &&**p != ' ' && **p != '\t' && **p != '\r' && **p != '\f' && **p != '\v' && **p != '\n') {
     *id = **p;
     id++;
     (*p) ++;
@@ -323,15 +361,16 @@ static void get_identifier(char** p, size_t* n, char* id) {
   *id=0;
 }
 
-static void get_value(char** p, size_t* n, char* value) {
+static void get_value(char** p, size_t* n, char* value)
+{
   if (**p=='"' || **p=='\'') {
     char quote = **p;
     (*p)++; /* skip the quotes */
     (*n)--;
 
     while (*n > 0
-       &&
-       **p != '\n' && **p != quote) {
+           &&
+           **p != '\n' && **p != quote) {
       *value = **p;
       value++;
       (*p) ++;
@@ -340,8 +379,8 @@ static void get_value(char** p, size_t* n, char* value) {
 
   } else {
     while (*n > 0
-       &&
-       **p != ' ' && **p != '\t' && **p != '\r' && **p != '\f' && **p != '\v' && **p != '\n') {
+           &&
+           **p != ' ' && **p != '\t' && **p != '\r' && **p != '\f' && **p != '\v' && **p != '\n') {
       *value = **p;
       value++;
       (*p) ++;
@@ -352,7 +391,8 @@ static void get_value(char** p, size_t* n, char* value) {
   *value=0;
 }
 
-static void read_config_file(dictionary_t dict, char* fname) {
+static void read_config_file(dictionary_t dict, char* fname)
+{
   int f;
   struct stat stat;
 
@@ -368,7 +408,7 @@ static void read_config_file(dictionary_t dict, char* fname) {
     return;
   }
 
-  printf("size of %s is %u bytes\n",fname,stat.st_size);
+  printf("size of %s is %lld bytes\n",fname,stat.st_size);
 
   char* buffer;
   buffer = mmap(NULL, stat.st_size, PROT_READ , MAP_SHARED, f, 0);
@@ -385,17 +425,21 @@ static void read_config_file(dictionary_t dict, char* fname) {
 
   while (remaining_size > 0) {
     skip_whitespace(&next,&remaining_size);
-    if (*next == '\n' || *next == '#') goto nextline;
+    if (*next == '\n' || *next == '#') {
+      goto nextline;
+    }
     get_identifier(&next,&remaining_size,identifier);
-    if (*next == '\n' || *next == '#') goto nextline;
+    if (*next == '\n' || *next == '#') {
+      goto nextline;
+    }
     skip_whitespace(&next,&remaining_size);
     skip_equals_sign(&next,&remaining_size);
     skip_whitespace(&next,&remaining_size);
     get_value(&next,&remaining_size,value);
     //printf("processing a line... <%s>=<%s> remaining %u\n",identifier,value,remaining_size);
     update_item(dict,identifier,value);
-    nextline:
-      skip_to_eol    (&next,&remaining_size);
+nextline:
+    skip_to_eol    (&next,&remaining_size);
   }
 
   munmap(buffer, stat.st_size);
@@ -405,8 +449,9 @@ static void read_config_file(dictionary_t dict, char* fname) {
 /*** processing argc, argv ***/
 
 static void process_args(dictionary_t dict,
-			 int argc,
-			 char* argv[]) {
+                         int argc,
+                         char* argv[])
+{
   int i;
   int argtype[argc];
   char* id;
@@ -435,7 +480,9 @@ static void process_args(dictionary_t dict,
       if (i<argc-1 && argtype[i+1]==0) {
         v = argv[i+1];
         i++;
-      } else v = 0;
+      } else {
+        v = 0;
+      }
       update_item(dict,id,v);
       break;
     case 2:
@@ -443,7 +490,9 @@ static void process_args(dictionary_t dict,
       if (i<argc-1 && argtype[i+1]==0) {
         v = argv[i+1];
         i++;
-      } else v = 0;
+      } else {
+        v = 0;
+      }
       update_item_short(dict,*id,v);
       break;
     case 3:
@@ -463,9 +512,10 @@ static void process_args(dictionary_t dict,
 /** initialization: process all the config files and the command-line arguments */
 
 dictionary_t configInit(char* fname,
-			char* locations[],
-			int argc,
-			char* argv[]) {
+                        char* locations[],
+                        int argc,
+                        char* argv[])
+{
   dictionary_t dict = (dictionary_t) malloc(sizeof(struct dictionary_st));
   dict->items = 0;
 
@@ -477,26 +527,28 @@ dictionary_t configInit(char* fname,
       char* p = fullname;
 
       while (*location) {
-	if (*location != '$') {
-	  *p = *location;
-	  p++;
-	  location++;
-	} else {
-	  location++; /* skip the dollar sign */
-	  env_substitute(&location, &p);
-	}
+        if (*location != '$') {
+          *p = *location;
+          p++;
+          location++;
+        } else {
+          location++; /* skip the dollar sign */
+          env_substitute(&location, &p);
+        }
       }
-      if (*location == 0) *p = 0;
+      if (*location == 0) {
+        *p = 0;
+      }
       if (*(p-1) != '/') {
-	*p = '/';
-	p++;
+        *p = '/';
+        p++;
       }
 
       char* f = fname;
       while (*f) {
-	*p = *f;
-	p++;
-	f++;
+        *p = *f;
+        p++;
+        f++;
       }
 
       *p = 0;
@@ -520,12 +572,13 @@ char* locations[] = {
   0
 };
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
   dictionary_t config =
     configInit("quickwifi.conf",
-	       locations,
-	       argc,
-	       argv);
+               locations,
+               argc,
+               argv);
   dump(config);
   printf(">>> %s\n",configGetString(config, "vtrack", 'v', "vtrack-default"));
   printf(">>> %s\n",configGetString(config, "test", 'v', "test-default"));
