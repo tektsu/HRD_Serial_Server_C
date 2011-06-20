@@ -14,10 +14,11 @@
 #include <stdint.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/types.h>
+//#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <assert.h>
+
 #include "config.h"
 
 /*** dictionary management ***/
@@ -552,7 +553,6 @@ dictionary_t configInit(char* fname,
   }
 
   process_args(dict, argc, argv);
-  dump(dict);
   return dict;
 }
 

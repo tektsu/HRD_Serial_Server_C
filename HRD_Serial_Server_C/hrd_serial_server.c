@@ -11,19 +11,19 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <netdb.h>
-#include <netinet/in.h>
+//#include <netdb.h>
+//#include <netinet/in.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
+//#include <sys/socket.h>
+//#include <sys/stat.h>
 #include <sys/time.h>
-#include <sys/types.h>
-#include <sys/utsname.h>
+//#include <sys/types.h>
+//#include <sys/utsname.h>
 #include <termios.h>
-#include <time.h>
+//#include <time.h>
 #include <unistd.h>
 
 #include "config.h"
@@ -36,6 +36,25 @@ char* config_locations[] = {
   "./",
   NULL
 };
+
+int main(int argc, char** argv)
+{
+  config =
+    configInit("hrd_serial_server.conf",
+               config_locations,
+               argc,
+               argv);
+
+  int port = configGetInt(config, "port", 0, DEFAULT_PORT);
+  printf("port %d\n",port);
+
+  int ss = server_socket_create(port);
+  while (1) {
+    int c  = connection_socket_create(ss);
+    start_session(c);
+  }
+}
+
 
 /********************************************************/
 /* time limited I/O                                     */
@@ -217,91 +236,6 @@ int server_socket_create(int port)
   return sd;
 }
 
-connection_t* connection_create(int socket)
-{
-  connection_t* conn = (connection_t*) malloc(sizeof(connection_t));
-  assert (conn!=0);
-  conn->buffer = malloc(8192);
-  conn->s = socket;
-  conn->handle = -1;
-
-  conn->read_interval    = 20;
-  conn->read_constant    = 20;
-  conn->read_multiplier  = 20;
-  conn->write_constant   = 20;
-  conn->write_multiplier = 20;
-
-  conn->done = 0;
-
-  pthread_create(&(conn->thread),NULL,(void *)connection_thread,conn);
-
-  return conn;
-}
-
-void connection_authenticate(connection_t* conn)
-{
-  char user[64];
-  char password[64];
-  char release[64];
-  strncpy(user,(conn->buffer)+16   ,63);
-  user[63]     = 0;
-  strncpy(password,(conn->buffer)+16+64,63);
-  password[63] = 0;
-  strncpy(release,(conn->buffer)+16+2*64,63);
-  release[63]  = 0;
-
-  printf("Authenticate command user=%s password=%s release=%s\n",user,password,release);
-
-
-  memset((conn->buffer)+16+2*64, 0, (conn->length)-(16+2*64));
-  uint32ToLittleEndian(1, (uint8_t *)(conn->buffer)+12); // signal success; 0 for failure
-  strcpy((conn->buffer)+16+2*64, "Welcome to Sivan Toledo's Serial Server");
-}
-
-void connection_enumerate(connection_t *conn)
-{
-  //char* ports = "COM1,COM21,ttyUSB0,ttyUSB1";
-  char ports[256];
-  ports[0] = 0; // initialize to empty string
-  char port[256];
-  printf("Enumerate command ports=%s\n",ports);
-
-  DIR* devs = opendir("/dev");
-  if (devs==0) {
-    printf("Weird: can't open /dev for listing\n");
-  }
-  struct dirent entry;
-  struct dirent* p;
-  int n=0;
-  do {
-    readdir_r(devs, &entry, &p);
-    if (!strncmp(entry.d_name,"ttyS",4) || !strncmp(entry.d_name,"ttyUSB",6)) {
-      sprintf(port,"/dev/%s",entry.d_name);
-      int dummy = open(port,O_RDWR | O_NOCTTY | O_NONBLOCK);
-      if (dummy == -1) {
-        printf("  %s exists, but cannot be opened, skipping\n",port);
-      } else {
-        close(dummy);
-        if (n>0) {
-          strcat(ports,",");
-        }
-        strcat(ports,entry.d_name);
-        n++;
-      }
-    }
-    //printf("%s \n",entry.d_name);
-  } while (p != NULL);
-  closedir(devs);
-
-  printf("  ports=%s\n",ports);
-
-  memset((conn->buffer)+16, 0, (conn->length)-16);
-  uint32ToLittleEndian(1, (uint8_t *)(conn->buffer)+12); // signal success; 0 for failure
-  strcpy((conn->buffer)+16, ports);
-  conn->length = 16 + (int)strlen(ports) + 1; // adjust size
-  uint32ToLittleEndian(conn->length, (uint8_t *)conn->buffer); // and fix header accordingly
-}
-
 void connection_open(connection_t *conn)
 {
   char port[64];
@@ -320,15 +254,15 @@ void connection_open(connection_t *conn)
   //conn->handle = 278; // need to actually open a serial port
 
   //if ((serial = open(port,O_RDWR | O_NOCTTY | O_SYNC)) == -1) {
-  if ((conn->handle = open(posix_port,O_RDWR | O_NOCTTY | O_NONBLOCK)) == -1) {
-    printf("ERROR: failed to open %s\r\n",posix_port);
+  if ((conn->handle = open(posix_port, O_RDWR | O_NOCTTY | O_NONBLOCK)) == -1) {
+    printf("ERROR: failed to open %s\r\n", posix_port);
     perror("open() failed: ");
-    strcpy((conn->buffer)+272,strerror(errno));
+    strcpy((conn->buffer)+272, strerror(errno));
   } else {
     // clear buffers and switch to blocking mode
-    tcflush(conn->handle,TCOFLUSH);
-    tcflush(conn->handle,TCIFLUSH);
-    fcntl(conn->handle,F_SETFL, fcntl(conn->handle,F_GETFL) & ~O_NONBLOCK);
+    tcflush(conn->handle, TCOFLUSH);
+    tcflush(conn->handle, TCIFLUSH);
+    fcntl(conn->handle, F_SETFL, fcntl(conn->handle, F_GETFL) & ~O_NONBLOCK);
   }
 
   //parse(buffer,total_length);
@@ -342,7 +276,7 @@ void connection_close(connection_t *conn)
   char port[64];
   strncpy(port,(conn->buffer)+12,63);
   port[63] = 0;
-  printf("close command, handle=%d (our handle is %d)\n",h,conn->handle);
+  printf("close command, handle=%d (our handle is %d)\n", h, conn->handle);
   printf("  closing port %s\n",port);
 
   close(h);
@@ -597,7 +531,7 @@ void connection_timeouts(connection_t *conn)
   conn->write_constant   = ReadTotalTimeoutConstant;
   conn->write_multiplier = ReadTotalTimeoutMultiplier;
 
-  uint32ToLittleEndian(1,(uint8_t *)(conn->buffer)+260); // success code
+  uint32ToLittleEndian(1, (uint8_t *)(conn->buffer)+260); // success code
 }
 
 void connection_send(connection_t *conn)
@@ -620,11 +554,11 @@ void connection_send(connection_t *conn)
   }
   persistent_write(h,(conn->buffer)+48,n);
 
-  uint32ToLittleEndian(n,(uint8_t *)(conn->buffer)+20); // bytes written?
-  uint32ToLittleEndian(n,(uint8_t *)(conn->buffer)+28); // bytes written?
+  uint32ToLittleEndian(n, (uint8_t *)(conn->buffer)+20); // bytes written?
+  uint32ToLittleEndian(n, (uint8_t *)(conn->buffer)+28); // bytes written?
 
   conn->length = 48; // chop the response
-  uint32ToLittleEndian(conn->length,(uint8_t *)conn->buffer);
+  uint32ToLittleEndian(conn->length, (uint8_t *)conn->buffer);
 }
 
 // time difference in milliseconds
@@ -642,11 +576,11 @@ void connection_receive(connection_t *conn)
 {
   int h = uint32FromLittleEndian((uint8_t *)(conn->buffer)+12);
   int n = uint32FromLittleEndian((uint8_t *)(conn->buffer)+16);
-  printf("Receive command, handle=%d (our handle is %d)\n",h,conn->handle);
+  printf("Receive command, handle=%d (our handle is %d)\n", h, conn->handle);
   printf("  %d bytes\n",n);
 
   conn->length = 52+n; // extend the response
-  memset((conn->buffer)+20,0,(conn->length)-20);
+  memset((conn->buffer)+20, 0, (conn->length)-20);
 
   // receive the data ...
   //p.receive(buffer, 52, n);
@@ -661,7 +595,7 @@ void connection_receive(connection_t *conn)
 
     while (k < n) {
       gettimeofday(&now,NULL);
-      int timeuntilnow = timediff(&start,&now);
+      int timeuntilnow = timediff(&start, &now);
       int timeleft = msecs_total - timeuntilnow;
       if (timeleft <=0) {
         printf("read timeout\n");
@@ -678,7 +612,7 @@ void connection_receive(connection_t *conn)
         break;
       }
       (conn->buffer)[52+k] = (uint8_t) rc;
-      printf("%02x ",(conn->buffer)[52+k]);
+      printf("%02X ", (uint8_t)(conn->buffer)[52+k]);
       k++;
     }
   }
@@ -715,144 +649,57 @@ void connection_receive(connection_t *conn)
   (conn->buffer)[7] = 0xff;
 }
 
-void connection_logging(connection_t *conn)
+
+//------------------------------------------------------------------------------
+// Purpose    : Start a new session on a socket
+// Parameters : socket - An open socket
+// Returns    : A connection structure
+//------------------------------------------------------------------------------
+connection_t *start_session(int socket)
 {
-  int n1 = uint32FromLittleEndian((uint8_t *)(conn->buffer)+12);
-  int n2 = uint32FromLittleEndian((uint8_t *)(conn->buffer)+16);
+  connection_t* conn = (connection_t*) malloc(sizeof(connection_t));
+  assert (conn!=0);
+  conn->buffer = malloc(8192);
+  conn->s = socket;
+  conn->handle = -1;
   
-  char port[32];
-  strncpy(port,(conn->buffer)+20,31); port[32] = 0;
-  char msg[64];
-  strncpy(port,(conn->buffer)+52,63); msg [64] = 0;
-
-  printf("Logging command (%d,%d,%s)\n",n1,n2,port);
-  printf("  <%s>\n",msg);
+  conn->read_interval    = 20;
+  conn->read_constant    = 20;
+  conn->read_multiplier  = 20;
+  conn->write_constant   = 20;
+  conn->write_multiplier = 20;
   
-  conn->length = 0; // don't send a response
+  conn->done = 0;
+  
+  pthread_create(&(conn->thread), NULL, (void *)session, conn);
+  
+  return conn;
 }
 
-void connection_process_command(connection_t* conn)
+//------------------------------------------------------------------------------
+// Purpose    : Handle a session
+// Parameters : conn_v - Void pointer to the connection_t structure
+// Returns    : NULL
+//------------------------------------------------------------------------------
+void *session(void* conn_v)
 {
-  printf("Processing command %d\n",conn->command);
-  switch (conn->command) {
-  case    0:
-    connection_authenticate(conn);
-    break;
-  case    1:
-    connection_enumerate(conn);
-    break;
-  case    2:
-    connection_open(conn);
-    break;
-  case    3:
-    connection_misc(conn);
-    break;
-  case    4:
-    connection_waitmask(conn);
-    break;
-  case    5:
-    connection_purge(conn);
-    break;
-  case    6:
-    connection_parameters(conn);
-    break;
-  case    7:
-    connection_timeouts(conn);
-    break;
-  case 0x0c: {
-    int k,q;
-    q=0;
-    printf("dumping command 12:\n");
-    for (k=0; k<conn->length; k++) {
-      printf("%02x ",(conn->buffer)[k]);
-      q++;
-      if (q==15) {
-        q=0;
-        printf("\n");
-      }
-    }
-    printf("\n--\n");
-  }
-  connection_send(conn);
-  conn->length = 0; // no reply
-  break;
-  case 0x0a:
-    connection_send(conn);
-    break;
-  case    8:
-    connection_receive(conn);
-    break;
-  case 0x0b:
-    connection_close(conn);
-    break;
-  case 0x0e:
-    connection_logging(conn);
-    break;
-  default:
-    printf("Unknown command code %d\n",conn->command);
-
-    {
-      int k,q;
-      q=0;
-      for (k=0; k<conn->length; k++) {
-        printf("%02x ",(conn->buffer)[k]);
-        q++;
-        if (q==15) {
-          q=0;
-          printf("\n");
-        }
-      }
-      printf("\n");
-    }
-
-    exit(1);
-    break;
-  }
-}
-
-ssize_t connection_read(connection_t* conn)
-{
-
-  ssize_t n = persistent_read(conn->s, conn->buffer, 12);
-  assert( n == 12 );
-
-  if ( strncmp((conn->buffer)+4, "HRD*", 4) ) {
-    printf("Incoming data missing the HRD* signature\n");
-    exit(1);
-  }
-
-  conn->length   = uint32FromLittleEndian((uint8_t *)(conn->buffer)+0);
-  conn->command  = uint32FromLittleEndian((uint8_t *)(conn->buffer)+8);
-
-  n = persistent_read(conn->s, (conn->buffer)+12, (conn->length) - 12);
-  if (n != (conn->length) - 12) {
-    printf("read only %ld bytes, waiting for %d\n",n,(conn->length)-12);
-  }
-  assert( n == (conn->length) - 12 );
-
-  printf("Command %d length %d\n", conn->command, conn->length);
-
-  return n;
-}
-
-//void connection_thread(int socket) {
-void *connection_thread(void* conn_v)
-{
-  connection_t* conn = (connection_t*) conn_v;
-  //connection_t* conn = connection_create(socket);
-
+  connection_t *conn = (connection_t *)conn_v;
+  
   while (1) {
     printf("reading command...");
-    connection_read(conn);
-    connection_process_command(conn);
-
-    if (conn->length == 0) {
+    connection_read(conn);            // Get the command
+                                      //connection_dump(conn);
+    connection_process_command(conn); // Run the command
+    
+    if (conn->length == 0) { // If length == 0, there is no response
       continue;
     }
-
+    
+    // Respond to command
     size_t n = persistent_write(conn->s, conn->buffer, conn->length);
     assert( n == conn->length );
-
+    
+    // If we are finished, close the connection and exit
     if (conn->done) {
       printf("looks like we are done\n");
       free(conn->buffer);
@@ -860,29 +707,245 @@ void *connection_thread(void* conn_v)
       free(conn);
       return NULL;
     }
-
   }
 }
 
-int main(int argc, char** argv)
+//------------------------------------------------------------------------------
+// Purpose    : Read a command from the connection
+// Parameters : conn - Pointer to the connection_t structure
+// Returns    : Number of bytes read
+//------------------------------------------------------------------------------
+ssize_t connection_read(connection_t* conn)
 {
-  config =
-    configInit("hrd_serial_server.conf",
-               config_locations,
-               argc,
-               argv);
+  
+  // Read header and parse out length and command number
+  ssize_t n = persistent_read(conn->s, conn->buffer, 12);
+  assert( n == 12 );
+  if ( strncmp((conn->buffer)+4, "HRD*", 4) ) {
+    printf("Incoming data missing the HRD* signature\n");
+    exit(1);
+  }
+  conn->length   = uint32FromLittleEndian((uint8_t *)(conn->buffer)+0);
+  conn->command  = uint32FromLittleEndian((uint8_t *)(conn->buffer)+8);
+  
+  // Read command data
+  n = persistent_read(conn->s, (conn->buffer)+12, (conn->length) - 12);
+  if (n != (conn->length) - 12) {
+    printf("read only %ld bytes, waiting for %d\n", n, (conn->length)-12);
+    // NOTE: Doesn't actually wait
+  }
+  assert( n == (conn->length) - 12 );
+  
+  printf("Command %d length %d\n", conn->command, conn->length);
+  
+  return conn->length;
+}
 
-  int port = configGetInt(config, "port", 0, 7805);
-  //printf(">>> %s\n",configGetString(config, "port", 0, "7805"));
-  printf("port %d\n",port);
-
-  return 0;
-
-  int ss = server_socket_create(port);
-  while (1) {
-    int c  = connection_socket_create(ss);
-    connection_create(c);
+//------------------------------------------------------------------------------
+// Purpose    : Process (run) a command
+// Parameters : conn - Pointer to the connection_t structure
+// Returns    : void
+//------------------------------------------------------------------------------
+void connection_process_command(connection_t* conn)
+{
+  printf("Processing command %d\n", conn->command);
+  switch (conn->command) {
+  case 0:
+    connection_authenticate(conn);
+    break;
+  case 1:
+    enumerate_serial_ports(conn);
+    break;
+  case 2:
+    connection_open(conn);
+    break;
+  case 3:
+    connection_misc(conn);
+    break;
+  case 4:
+    connection_waitmask(conn);
+    break;
+  case 5:
+    connection_purge(conn);
+    break;
+  case 6:
+    connection_parameters(conn);
+    break;
+  case 7:
+    connection_timeouts(conn);
+    break;
+  case 8:
+    connection_receive(conn);
+    break;
+  case 10:
+    connection_send(conn);
+    break;
+  case 11:
+    connection_close(conn);
+    break;
+  case 12:
+    printf("dumping command 12:\n");
+    connection_dump(conn);
+    printf("\n--\n");
+    connection_send(conn);
+    conn->length = 0; // no reply
+    break;
+  case 14:
+    connection_logging(conn);
+    break;
+  default:
+    printf("Unknown command code %d\n", conn->command);
+    connection_dump(conn);
+    exit(1);
+    break;
   }
 }
 
+//------------------------------------------------------------------------------
+// Purpose    : Build message to authenticate user
+// Parameters : conn - Pointer to the connection_t structure
+// Returns    : void
+// Command #  : 0
+// Input Msg  : header (0 - 11)
+//            : user (16 - 79)
+//            : password (80 - 143)
+//            : release (144 - 207)
+// Output Msg : header (0 - 11)
+//            : success flag (12 - 15)
+//            : user (16 - 79)
+//            : password (80 - 143)
+//            : welcome message (144 - 207)
+//------------------------------------------------------------------------------
+void connection_authenticate(connection_t* conn)
+{
+  // Parse out user, password, and release number
+  char user[64];
+  char password[64];
+  char release[64];
+  strncpy(user, (conn->buffer)+16, 63);
+  user[63]     = 0;
+  strncpy(password, (conn->buffer)+16+64, 63);
+  password[63] = 0;
+  strncpy(release, (conn->buffer)+16+2*64, 63);
+  release[63]  = 0;
+  
+  // We currently authenticate everything
+  printf("Authenticate command user=%s password=%s release=%s\n",
+         user, password, release);
+  
+  // Build return message
+  memset((conn->buffer)+16+2*64, 0, (conn->length)-(16+2*64));
+  uint32ToLittleEndian(1, (uint8_t *)(conn->buffer)+12); // signal success; 0 for failure
+  strcpy((conn->buffer)+16+2*64, "Welcome to Sivan Toledo's Serial Server");
+}
+
+//------------------------------------------------------------------------------
+// Purpose    : Build a message to inform the client of available serial ports
+// Parameters : conn - Pointer to the connection_t structure
+// Returns    : void
+// Command #  : 1
+// Input Msg  : header (0 - 11)
+// Output Msg : header (0 - 11)
+//            : success flag (12 - 15)
+//            : comma-delimited port list (16 - end)
+//------------------------------------------------------------------------------
+void enumerate_serial_ports(connection_t *conn)
+{
+  // Comma-delimited serial port list to return
+  char ports[256];
+  ports[0] = 0; // initialize to empty string
+  printf("Enumerate command ports\n");
+  
+  // Look for serial ports in the /devs directory
+  DIR* devs = opendir("/dev");
+  if (devs==NULL) {
+    printf("Weird: can't open /dev for listing\n");
+  } else {
+    struct dirent entry;
+    struct dirent* p;
+    int port_count=0;
+    char port[256];
+    do {
+      readdir_r(devs, &entry, &p);
+      if (!strncmp(entry.d_name,"ttyS", 4)
+          || !strncmp(entry.d_name,"ttyUSB", 6)
+          || !strncmp(entry.d_name,"tty.usbserial", 13)) {
+        sprintf(port, "/dev/%s", entry.d_name);
+        int dummy = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);
+        if (dummy == -1) {
+          printf("  %s exists, but cannot be opened, skipping\n", port);
+        } else {
+          close(dummy);
+          if (port_count>0) {
+            strcat(ports, ",");
+          }
+          strcat(ports, entry.d_name);
+          port_count++;
+        }
+      }
+    } while (p != NULL);
+    closedir(devs);
+  }
+  
+  // Build return message
+  printf("  ports=%s\n",ports);
+  memset((conn->buffer)+16, 0, (conn->length)-16);
+  uint32ToLittleEndian(1, (uint8_t *)(conn->buffer)+12); // signal success; 0 for failure
+  strcpy((conn->buffer)+16, ports);
+  conn->length = 16 + (int)strlen(ports) + 1; // adjust size
+  uint32ToLittleEndian(conn->length, (uint8_t *)conn->buffer); // and fix header accordingly
+}
+
+//------------------------------------------------------------------------------
+// Purpose    : Log a message
+// Parameters : conn - Pointer to the connection_t structure
+// Returns    : void
+// Command #  : 12
+// Input Msg  : header (0 - 11)
+// Output Msg : None
+//------------------------------------------------------------------------------
+void connection_logging(connection_t *conn)
+{
+  // Don't know what these numbers are
+  int n1 = uint32FromLittleEndian((uint8_t *)(conn->buffer)+12);
+  int n2 = uint32FromLittleEndian((uint8_t *)(conn->buffer)+16);
+  
+  // Port string
+  char port[32];
+  strncpy(port,(conn->buffer)+20,31);
+  port[32] = 0;
+  
+  // Message string
+  char msg[64];
+  strncpy(port,(conn->buffer)+52,63);
+  msg [64] = 0;
+  
+  // Log the message to the screen
+  printf("Logging command (%d,%d,%s)\n", n1, n2, port);
+  printf("  <%s>\n",msg);
+  
+  // don't send a response
+  conn->length = 0;
+}
+
+//------------------------------------------------------------------------------
+// Purpose    : Dump a command to the screen
+// Parameters : conn - Pointer to the connection_t structure
+// Returns    : void
+//------------------------------------------------------------------------------
+void connection_dump(connection_t *conn)
+{
+  printf("--- Dump Command, Length: %d---\n", conn->length);
+  int k,q;
+  q=0;
+  for (k=0; k<conn->length; k++) {
+    printf("%02X ", (uint8_t)(conn->buffer)[k]);
+    q++;
+    if (q==26) {
+      q=0;
+      printf("\n");
+    }
+  }
+  printf("\n--- End Command ---\n");
+}
 
