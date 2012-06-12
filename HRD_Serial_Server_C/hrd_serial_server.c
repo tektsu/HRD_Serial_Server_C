@@ -37,7 +37,7 @@ char* config_locations[] = {
   NULL
 };
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
   config =
     configInit("hrd_serial_server.conf",
@@ -48,13 +48,11 @@ int main(int argc, char** argv)
   int port = configGetInt(config, "port", 0, DEFAULT_PORT);
   printf("port %d\n",port);
 
-  int ss = server_socket_create(port);
-  while (1) {
-    int c  = connection_socket_create(ss);
-    start_session(c);
-  }
+  // Run the server
+  int server_socket = server_socket_create(port);
+  while (1)
+    start_session(connection_socket_create(server_socket));
 }
-
 
 /********************************************************/
 /* time limited I/O                                     */
@@ -66,13 +64,12 @@ int serialReceiveByteTimelimited(int fd, int msecs)
 
   fd_set fd_read;
   FD_ZERO(&fd_read);
-  //FD_SET(packetizerReadfd,&fd_read);
   FD_SET(fd,&fd_read);
 
   struct timeval timeout;
   timeout.tv_sec=0;
-  timeout.tv_usec=1000*msecs; /* 25ms */
-
+  timeout.tv_usec=1000*msecs;
+  
   int res=select(FD_SETSIZE, &fd_read, 0, 0, &timeout);
   if (res == 0) {
     printf("timeout in select (> %dms)\n",msecs);
@@ -98,142 +95,6 @@ int serialReceiveByteTimelimited(int fd, int msecs)
     assert(0); // this should never happen; fd must be set if res>0
   }
   return -1;
-}
-
-/********************************************************/
-/* persistent reads and writes                          */
-/********************************************************/
-
-ssize_t persistent_read(int fd, void *buf, size_t count)
-{
-  ssize_t n = 0;
-
-  while (n < count) {
-    ssize_t m = read(fd, buf+n, count-n);
-    if (m == -1) {
-      return -1;
-    }
-    n = n+m;
-  }
-  return n;
-}
-
-size_t persistent_write(int fd, void *buf, size_t count)
-{
-  size_t n = 0;
-
-  while (n < count) {
-    size_t m = write(fd, buf+n, count-n);
-    if (m == -1) {
-      return -1;
-    }
-    n = n+m;
-  }
-  return n;
-}
-
-int connection_socket_create(int sd)
-{
-  struct sockaddr_in client = { 0 };
-  int client_len = sizeof(client);
-  int s;
-  (void) memset(&client, 0, sizeof(client));
-  s = accept(sd, (struct sockaddr *) &client, (socklen_t *)&client_len);
-  if (s == -1) {
-    perror("accept()");
-    exit(1);
-  }
-
-  if (getpeername(s, (struct sockaddr *) &client, (socklen_t *)&client_len) == -1) {
-    perror("getpeername()");
-  } else {
-    printf("Connection request from %s\n", inet_ntoa(client.sin_addr));
-  }
-
-  return s;
-}
-
-int server_socket_create(int port)
-{
-  int sd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-  if (sd == -1) {
-    perror("socket()");
-    exit(1);
-  }
-
-  /*
-   * turn off bind address checking, and allow port numbers
-   * to be reused - otherwise the TIME_WAIT phenomenon will
-   * prevent binding to these address.port combinations for
-   * (2 * MSL) seconds.
-   */
-
-  int on = 1;
-  if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR,
-                 (const char *) &on, sizeof(on)) == -1) {
-    perror("setsockopt(...,SO_REUSEADDR,...)");
-  }
-
-  /*
-   * when connection is closed, there is a need to linger to ensure
-   * all data is transmitted, so turn this on also
-   */
-
-  struct linger linger = { 0 };
-  linger.l_onoff = 1;
-  linger.l_linger = 30;
-  if (setsockopt(sd, SOL_SOCKET, SO_LINGER,
-                 (const char *) &linger, sizeof(linger)) == -1) {
-    perror("setsockopt(...,SO_LINGER,...)");
-  }
-
-#if 0
-  /*
-   * find out who I am
-   */
-
-  struct utsname sysname = { 0 };
-  if (uname(&sysname) != -1) {
-    strncpy(buffer, sysname.nodename, length);
-  } else {
-    perror("uname");
-    exit(1);
-  }
-
-  hostPtr = gethostbyname(hostname);
-  if (NULL == hostPtr) {
-    perror("gethostbyname()");
-    exit(1);
-  }
-
-  (void) memset(&serverName, 0, sizeof(serverName));
-  (void) memcpy(&serverName.sin_addr, hostPtr->h_addr,
-                hostPtr->h_length);
-#endif
-
-  /*
-   * to allow server be contactable on any of its
-   * IP addresses, uncomment the following line of code:
-   *
-   * serverName.sin_addr.s_addr = htonl(INADDR_ANY);
-   */
-
-  struct sockaddr_in addr;
-  (void) memset(&addr, 0, sizeof(addr));
-  addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  addr.sin_family      = AF_INET;
-  addr.sin_port        = htons(port); /* network-order */
-  if (bind(sd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
-    perror("bind()");
-    exit(1);
-  }
-
-  if (listen(sd, 5 /* back log */) == -1) {
-    perror("listen()");
-    exit(1);
-  }
-
-  return sd;
 }
 
 void connection_open(connection_t *conn)
@@ -651,6 +512,85 @@ void connection_receive(connection_t *conn)
 
 
 //------------------------------------------------------------------------------
+// Purpose    : Create a server socket
+// Parameters : port - Port to bind to
+// Returns    : socket descriptor
+//------------------------------------------------------------------------------
+int server_socket_create(int port)
+{
+  int server_socket;
+  if((server_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
+    perror("Unable to create socket");
+    exit(1);
+  }
+  
+  // Turn off bind address checking
+  int on = 1;
+  if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, 
+                 (const char *)&on, sizeof(on)) == -1) {
+    perror("Unable to set SO_REUSEADDR");
+    exit(1);
+  }
+  
+  // Make sure all data is transmitted before closing port
+  struct linger linger = { 0 };
+  linger.l_onoff = 1;
+  linger.l_linger = 30;
+  if (setsockopt(server_socket, SOL_SOCKET, SO_LINGER,
+                 (const char *)&linger, sizeof(linger)) == -1) {
+    perror("Unable to set SO_LINGER");
+    exit(1);
+  }
+  
+  // Bind to the server port
+  // Accept connections at any IP address
+  struct sockaddr_in addr;
+  (void) memset(&addr, 0, sizeof(addr));
+  addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  addr.sin_family      = AF_INET;
+  addr.sin_port        = htons(port); /* network-order */
+  if (bind(server_socket, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
+    perror("Unable to bind to server port");
+    exit(1);
+  }
+  
+  // Listen for connections
+  if (listen(server_socket, 5 /* back log */) == -1) {
+    perror("Unable to listen for connections");
+    exit(1);
+  }
+  
+  return server_socket;
+}
+
+//------------------------------------------------------------------------------
+// Purpose    : Create a connection socket
+// Parameters : sd - server socket
+// Returns    : socket descriptor
+//------------------------------------------------------------------------------
+int connection_socket_create(int server_socket)
+{
+  struct sockaddr_in client = { 0 };
+  int client_len = sizeof(client);
+  int connection_socket;
+  (void) memset(&client, 0, sizeof(client));
+  if((connection_socket = accept(server_socket, (struct sockaddr *)&client,
+                                 (socklen_t *)&client_len)) == -1) {
+    perror("Unable to create connection socket");
+    exit(1);
+  }
+  
+  if(getpeername(connection_socket, (struct sockaddr *)&client,
+                 (socklen_t *)&client_len) == -1) {
+    perror("Unable to get address of connection");
+  } else {
+    printf("Connection request from %s\n", inet_ntoa(client.sin_addr));
+  }
+  
+  return connection_socket;
+}
+
+//------------------------------------------------------------------------------
 // Purpose    : Start a new session on a socket
 // Parameters : socket - An open socket
 // Returns    : A connection structure
@@ -688,7 +628,6 @@ void *session(void* conn_v)
   while (1) {
     printf("reading command...");
     connection_read(conn);            // Get the command
-                                      //connection_dump(conn);
     connection_process_command(conn); // Run the command
     
     if (conn->length == 0) { // If length == 0, there is no response
@@ -734,7 +673,7 @@ ssize_t connection_read(connection_t* conn)
     printf("read only %ld bytes, waiting for %d\n", n, (conn->length)-12);
     // NOTE: Doesn't actually wait
   }
-  assert( n == (conn->length) - 12 );
+  //assert(n == (conn->length) - 12);
   
   printf("Command %d length %d\n", conn->command, conn->length);
   
@@ -948,4 +887,45 @@ void connection_dump(connection_t *conn)
   }
   printf("\n--- End Command ---\n");
 }
+
+//------------------------------------------------------------------------------
+// Purpose    : Read bytes from a stream
+// Parameters : fd    - File handle to read from
+//            : buf   - Location which bytes should be written
+//            : count - Number of bytes to read
+// Returns    : Number of bytes read
+//------------------------------------------------------------------------------
+ssize_t persistent_read(int fd, void *buf, size_t count)
+{
+  ssize_t n = 0;
+  while (n < count) {
+    ssize_t m = read(fd, buf+n, count-n);
+    if (m == -1) {
+      return -1;
+    }
+    n = n+m;
+  }
+  return n;
+}
+
+//------------------------------------------------------------------------------
+// Purpose    : Write bytes to a stream
+// Parameters : fd    - File handle to write tp
+//            : buf   - Location which bytes should be read from
+//            : count - Number of bytes to write
+// Returns    : Number of bytes written
+//------------------------------------------------------------------------------
+ssize_t persistent_write(int fd, void *buf, size_t count)
+{
+  ssize_t n = 0;
+  while (n < count) {
+    ssize_t m = write(fd, buf+n, count-n);
+    if (m == -1) {
+      return -1;
+    }
+    n = n+m;
+  }
+  return n;
+}
+
 

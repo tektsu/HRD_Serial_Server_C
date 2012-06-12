@@ -33,7 +33,7 @@ typedef struct {
 
 int serialReceiveByteTimelimited(int fd, int msecs);
 ssize_t persistent_read(int fd, void *buf, size_t count);
-size_t persistent_write(int fd, void *buf, size_t count);
+ssize_t persistent_write(int fd, void *buf, size_t count);
 int connection_socket_create(int sd);
 int server_socket_create(int port);
 connection_t* start_session(int socket);
